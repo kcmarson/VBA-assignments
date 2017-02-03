@@ -1,0 +1,300 @@
+Option Explicit
+
+
+Sub sunshineBankTeam21()
+    'Assign variables for the renaming portion
+Dim i As Long
+Dim nameLength As Integer
+Dim breakString As Integer
+Dim custName As String
+Dim custLname As String
+Dim custFname As String
+Dim endOfRecords As Boolean
+Dim numOfRecords As Integer
+
+Dim acctNum As Long
+Dim acctBal As Double
+Dim state As String
+Dim acctType As Integer
+Dim PIN As Integer
+Dim race As Integer
+Dim maritalStat As Integer
+Dim homeown As Integer
+
+Dim cannotCount As Long
+Dim followup As Long
+Dim loadDataCount As Long
+Dim PINCount As Long
+Dim premierCount As Long
+Dim problemCount As Long
+Dim Ans As String
+Dim msg As String
+Dim title As String
+Dim sumSunShine As Double
+Dim sumLoadData As Double
+Dim sumFollowUp As Double
+Dim sumcannotCount As Double
+Dim sumPINCount As Double
+Dim sumPremierCount As Double
+Dim sumProblemCount As Double
+Dim per As Double
+Dim moneySaved As Double
+Dim startTime As Double
+Dim secondsElapsed As Double
+Dim avgLoadDataAmt As Double
+Dim xAxis As Long
+Dim yAxis As Long
+
+Dim numRows As Long
+Dim x As Long
+Dim nextRnd As Long
+
+Dim randCustLname As String
+Dim randCustFname As String
+
+Dim randAcctNum As Long
+Dim randAcctBal As Double
+Dim randState As String
+Dim randAcctType As Integer
+Dim randPIN As Integer
+Dim randRace As Integer
+Dim randMaritalStat As Integer
+Dim randHomeown As Integer
+Dim randCount As Long
+
+
+startTime = Timer
+endOfRecords = False
+i = 2
+
+
+Do Until endOfRecords = True
+    
+    If IsEmpty(Worksheets("SUNSHINE").Cells(i, 1)) And IsEmpty(Worksheets("SUNSHINE").Cells(i, 2)) And IsEmpty(Worksheets("SUNSHINE").Cells(i, 3)) Then
+        endOfRecords = True
+        
+    Else
+    
+        custName = Worksheets("SUNSHINE").Cells(i, 2).Value
+        
+        nameLength = Len(custName)
+        breakString = InStr(1, custName, ", ")
+        If breakString <> 0 Then
+        custLname = UCase(Left(custName, breakString - 1))
+        custFname = LCase(Right(custName, nameLength - breakString - 1))
+        End If
+        
+        acctNum = Worksheets("SUNSHINE").Cells(i, 1).Value
+        acctBal = Worksheets("SUNSHINE").Cells(i, 3).Value
+        state = Worksheets("SUNSHINE").Cells(i, 4).Value
+        acctType = Worksheets("SUNSHINE").Cells(i, 5).Value
+        PIN = Worksheets("SUNSHINE").Cells(i, 6).Value
+        race = Worksheets("SUNSHINE").Cells(i, 7).Value
+        maritalStat = Worksheets("SUNSHINE").Cells(i, 8).Value
+        homeown = Worksheets("SUNSHINE").Cells(i, 9).Value
+        sumSunShine = sumSunShine + Worksheets("SUNSHINE").Cells(i, 3).Value
+            
+            'Follow Up (missing records)
+            If IsEmpty(Worksheets("SUNSHINE").Cells(i, 1)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 2)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 3)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 4)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 5)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 6)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 7)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 8)) Or IsEmpty(Worksheets("SUNSHINE").Cells(i, 9)) Then
+                followup = followup + 1
+                Worksheets("Follow Up").Cells(followup + 1, 1) = acctNum
+                Worksheets("Follow Up").Cells(followup + 1, 1).NumberFormat = "00000000"
+                Worksheets("Follow Up").Cells(followup + 1, 2) = custFname
+                Worksheets("Follow Up").Cells(followup + 1, 3) = custLname
+                Worksheets("Follow Up").Cells(followup + 1, 4) = acctBal
+                Worksheets("Follow Up").Cells(followup + 1, 5) = state
+                Worksheets("Follow Up").Cells(followup + 1, 6) = acctType
+                Worksheets("Follow Up").Cells(followup + 1, 7) = PIN
+                Worksheets("Follow Up").Cells(followup + 1, 8) = race
+                Worksheets("Follow Up").Cells(followup + 1, 9) = maritalStat
+                Worksheets("Follow Up").Cells(followup + 1, 10) = homeown
+                sumFollowUp = sumFollowUp + Worksheets("Follow Up").Cells(followup + 1, 4)
+            
+            Else
+            'Cannot Serve due to incorrect state
+            If state <> "Alabama" And state <> "Arkansas" And state <> "Florida" And state <> "Georgia" And state <> "Louisiana" And state <> "Mississippi" And state <> "Tennessee" Then
+                cannotCount = cannotCount + 1
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 1) = acctNum
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 1).NumberFormat = "00000000"
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 2) = custFname
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 3) = custLname
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 4) = acctBal
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 5) = state
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 6) = acctType
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 7) = PIN
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 8) = race
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 9) = maritalStat
+                Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 10) = homeown
+                sumcannotCount = sumcannotCount + Worksheets("Customers We Cannot Serve").Cells(cannotCount + 1, 4)
+            Else
+                'If not missing data or the incorret state, put Data in Load Data
+                loadDataCount = loadDataCount + 1
+                Worksheets("Load Data").Cells(loadDataCount + 1, 1) = acctNum
+                Worksheets("Load Data").Cells(loadDataCount + 1, 1).NumberFormat = "00000000"
+                Worksheets("Load Data").Cells(loadDataCount + 1, 2) = custFname
+                Worksheets("Load Data").Cells(loadDataCount + 1, 3) = custLname
+                Worksheets("Load Data").Cells(loadDataCount + 1, 4) = acctBal
+                Worksheets("Load Data").Cells(loadDataCount + 1, 5) = state
+                Worksheets("Load Data").Cells(loadDataCount + 1, 6) = acctType
+                Worksheets("Load Data").Cells(loadDataCount + 1, 7) = PIN
+                Worksheets("Load Data").Cells(loadDataCount + 1, 8) = race
+                Worksheets("Load Data").Cells(loadDataCount + 1, 9) = maritalStat
+                Worksheets("Load Data").Cells(loadDataCount + 1, 10) = homeown
+                sumLoadData = sumLoadData + Worksheets("Load Data").Cells(loadDataCount + 1, 4)
+                
+                'PIN Analysis
+                If PIN = 0 Or PIN = 1111 Or PIN = 2222 Or PIN = 3333 Or PIN = 4444 Or PIN = 5555 Or PIN = 6666 Or PIN = 7777 Or PIN = 8888 Or PIN = 9999 Then
+                    PINCount = PINCount + 1
+                    Worksheets("PIN").Cells(PINCount + 1, 1) = acctNum
+                    Worksheets("PIN").Cells(PINCount + 1, 1).NumberFormat = "00000000"
+                    Worksheets("PIN").Cells(PINCount + 1, 2) = custFname
+                    Worksheets("PIN").Cells(PINCount + 1, 3) = custLname
+                    Worksheets("PIN").Cells(PINCount + 1, 4) = acctBal
+                    Worksheets("PIN").Cells(PINCount + 1, 5) = state
+                    Worksheets("PIN").Cells(PINCount + 1, 6) = acctType
+                    Worksheets("PIN").Cells(PINCount + 1, 7) = PIN
+                    Worksheets("PIN").Cells(PINCount + 1, 8) = race
+                    Worksheets("PIN").Cells(PINCount + 1, 9) = maritalStat
+                    Worksheets("PIN").Cells(PINCount + 1, 10) = homeown
+                    sumPINCount = sumPINCount + Worksheets("PIN").Cells(PINCount + 1, 4)
+                End If
+                
+                'Premier Customers
+                If acctBal >= 25000# Or acctBal > 18000# And homeown = 2 And maritalStat = 2 Then
+                    premierCount = premierCount + 1
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 1) = acctNum
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 1).NumberFormat = "00000000"
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 2) = custFname
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 3) = custLname
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 4) = acctBal
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 5) = state
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 6) = acctType
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 7) = PIN
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 8) = race
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 9) = maritalStat
+                    Worksheets("Premier Customers").Cells(premierCount + 1, 10) = homeown
+                    sumPremierCount = sumPremierCount + Worksheets("Premier Customers").Cells(premierCount + 1, 4)
+                End If
+                
+                'Problem Customers
+                If acctBal < 0 Then
+                    problemCount = problemCount + 1
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 1) = acctNum
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 1).NumberFormat = "00000000"
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 2) = custFname
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 3) = custLname
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 4) = acctBal
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 5) = state
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 6) = acctType
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 7) = PIN
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 8) = race
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 9) = maritalStat
+                    Worksheets("Problem Customers").Cells(problemCount + 1, 10) = homeown
+                    sumProblemCount = sumProblemCount + Worksheets("Problem Customers").Cells(problemCount + 1, 4)
+                
+                End If
+                End If
+                
+            End If
+    
+    i = i + 1
+        
+    End If
+    
+Loop
+
+avgLoadDataAmt = sumLoadData / (loadDataCount + 1)
+For xAxis = 2 To loadDataCount + 1
+
+If Worksheets("Load Data").Cells(xAxis, 4) >= avgLoadDataAmt + 5000 Then
+Worksheets("Load Data").Cells(xAxis, 1).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 2).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 3).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 4).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 5).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 6).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 7).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 8).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 9).Interior.Color = RGB(173, 216, 230)
+Worksheets("Load Data").Cells(xAxis, 10).Interior.Color = RGB(173, 216, 230)
+End If
+Next xAxis
+
+For yAxis = 2 To loadDataCount + 1
+
+If Worksheets("Load Data").Cells(yAxis, 4) <= avgLoadDataAmt - 7000 Then
+Worksheets("Load Data").Cells(yAxis, 1).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 2).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 3).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 4).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 5).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 6).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 7).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 8).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 9).Interior.Color = vbYellow
+Worksheets("Load Data").Cells(yAxis, 10).Interior.Color = vbYellow
+End If
+Next yAxis
+
+'Pull random sample from Load Data to Random Sample
+Randomize
+
+    'Determine Number of Rows in Sheet1 Column A
+  numRows = Worksheets("Load Data").Range("A" & Rows.Count).End(xlUp).Row
+
+
+    'Loop 300 times
+     For x = 1 To 300
+
+    'Generate Random number
+getNew:
+        nextRnd = Int((numRows - 2 + 1) * Rnd + 2)
+        
+        randAcctNum = Worksheets("Load Data").Cells(nextRnd, 1).Value
+        randCustFname = Worksheets("Load Data").Cells(nextRnd, 2).Value
+        randCustLname = Worksheets("Load Data").Cells(nextRnd, 3).Value
+        randAcctBal = Worksheets("Load Data").Cells(nextRnd, 4).Value
+        randState = Worksheets("Load Data").Cells(nextRnd, 5).Value
+        randAcctType = Worksheets("Load Data").Cells(nextRnd, 6).Value
+        randPIN = Worksheets("Load Data").Cells(nextRnd, 7).Value
+        randRace = Worksheets("Load Data").Cells(nextRnd, 8).Value
+        randMaritalStat = Worksheets("Load Data").Cells(nextRnd, 9).Value
+        randHomeown = Worksheets("Load Data").Cells(nextRnd, 10).Value
+        
+    If randAcctNum <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randCustFname <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randCustLname <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randAcctBal <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randState <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randAcctType <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randPIN <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randRace <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randMaritalStat <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And randHomeown <> Worksheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value Then
+        randCount = randCount + 1
+        Worksheets("Random Sample").Cells(randCount + 1, 1).Value = randAcctNum
+        Worksheets("Random Sample").Cells(randCount + 1, 1).NumberFormat = "00000000"
+        Worksheets("Random Sample").Cells(randCount + 1, 2).Value = randCustFname
+        Worksheets("Random Sample").Cells(randCount + 1, 3).Value = randCustLname
+        Worksheets("Random Sample").Cells(randCount + 1, 4).Value = randAcctBal
+        Worksheets("Random Sample").Cells(randCount + 1, 5).Value = randState
+        Worksheets("Random Sample").Cells(randCount + 1, 6).Value = randAcctType
+        Worksheets("Random Sample").Cells(randCount + 1, 7).Value = randPIN
+        Worksheets("Random Sample").Cells(randCount + 1, 8).Value = randRace
+        Worksheets("Random Sample").Cells(randCount + 1, 9).Value = randMaritalStat
+        Worksheets("Random Sample").Cells(randCount + 1, 10).Value = randHomeown
+        
+    Else: GoTo getNew
+      
+    End If
+    
+  Next
+
+per = ((followup + 1) / i) * 100
+moneySaved = -sumProblemCount
+secondsElapsed = Round(Timer - startTime, 2)
+msg = "1. The number of records that were reformatted to Prospect Bank's specifications" & vbNewLine
+msg = msg & "and are able to be loaded into Prospect Bank's systems for immediate use are " & loadDataCount & "." & vbNewLine
+msg = msg & "2. The percentage of the records from SUNSHINE Bank that contained missing information is " & per & " %." & vbNewLine
+msg = msg & "3. The amount (in terms of account balances) that is being lost due to the federal" & vbNewLine
+msg = msg & "regulation that the merged organization cannot operate outside the states is $" & sumcannotCount & "." & vbNewLine
+msg = msg & "4. The amount (in terms of account balances) that will be saved if the problem" & vbNewLine
+msg = msg & "clients are forced to reimburse the merged bank for the negative account balances and close their accounts is $" & moneySaved & "." & vbNewLine
+msg = msg & "5. The amount of time (in seconds) the entire macro took to execute is " & secondsElapsed & " seconds!!"
+title = "TEAM 21 RESULT"
+Ans = MsgBox(msg, vbOKOnly, title)
+
+     
+End Sub
+
