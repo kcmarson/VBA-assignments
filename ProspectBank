@@ -2,7 +2,7 @@ Option Explicit
 
 
 Sub sunshineBankTeam21()
-    'Assign variables for the renaming portion
+ 'Assign variables for the renaming portion
 Dim i As Long
 Dim nameLength As Integer
 Dim breakString As Integer
