@@ -1,0 +1,212 @@
+Option Explicit
+Function nameSplit(name As String, fCheck As Boolean)
+'This function splits the names into first and last.
+'The fCheck boolean identifies whether or not the name returned is the first name
+
+Dim temp As Variant
+Dim first As String
+Dim last As String
+
+temp = Split(name, ",")
+first = Trim(temp(1))
+last = temp(0)
+'return the appropriate name
+If fCheck Then
+    nameSplit = first
+Else
+    nameSplit = last
+End If
+End Function
+Function isInArray(arr() As String, check As String)
+' This function checks if a given variant is within a String array. It is used for determing clients that
+'Cannot be served
+    isInArray = (UBound(Filter(arr, check)) > -1)
+End Function
+Sub insertData(i As Long, rw As Long, dest As String)
+' This sub puts the client information into its respective sheet, in the formatting expected by Prospect Bank.
+' The variable i references the row from the SUNSHINE sheet currently being evaluated, rw is the available row
+' within the respective sheet(storage variables are saved within the main function) dest is a string that
+' dictates the sheet destination of the information
+    
+    Dim j As Integer
+    If Not IsEmpty(Sheets("SUNSHINE").Cells(i, 2).Value) Then
+    ' This if statement is neccessary to avoid issues that arise when nameSplit is fed a blank value
+        Sheets(dest).Cells(rw, 2).Value = LCase(nameSplit(Sheets("SUNSHINE").Cells(i, 2).Value, True))
+        Sheets(dest).Cells(rw, 3).Value = UCase(nameSplit(Sheets("SUNSHINE").Cells(i, 2).Value, False))
+    End If
+                
+    ' The following section of code changes the account number variable to a string if it is missing digits
+    ' Then adds an appropriate number of leading 0s to the string, then converts it back to an integer to be processed
+    
+                Sheets(dest).Cells(rw, 1).Value = Sheets("SUNSHINE").Cells(i, 1).Value
+                If Sheets(dest).Cells(rw, 1).Value < 10000000 Then
+                    Sheets(dest).Cells(rw, 1).NumberFormat = "00000000"
+                End If
+                Sheets(dest).Cells(rw, 4).Value = Sheets("SUNSHINE").Cells(i, 3).Value
+                Sheets(dest).Cells(rw, 5).Value = Sheets("SUNSHINE").Cells(i, 4).Value
+                Sheets(dest).Cells(rw, 6).Value = Sheets("SUNSHINE").Cells(i, 5).Value
+                Sheets(dest).Cells(rw, 7).Value = Sheets("SUNSHINE").Cells(i, 6).Value
+                Sheets(dest).Cells(rw, 8).Value = Sheets("SUNSHINE").Cells(i, 7).Value
+                Sheets(dest).Cells(rw, 9).Value = Sheets("SUNSHINE").Cells(i, 8).Value
+                Sheets(dest).Cells(rw, 10).Value = Sheets("SUNSHINE").Cells(i, 9).Value
+End Sub
+Sub colorize(i As Long, blue As Boolean)
+'This sub applied colors to the high/low roller customers
+    If blue Then
+        Sheets("Load Data").Cells(i, 1).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 2).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 3).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 4).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 5).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 6).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 7).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 8).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 9).Interior.Color = RGB(173, 216, 230)
+        Sheets("Load Data").Cells(i, 10).Interior.Color = RGB(173, 216, 230)
+    Else
+        Sheets("Load Data").Cells(i, 1).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 2).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 3).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 4).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 5).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 6).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 7).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 8).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 9).Interior.Color = vbYellow
+        Sheets("Load Data").Cells(i, 10).Interior.Color = vbYellow
+    End If
+End Sub
+Sub Main()
+Application.ScreenUpdating = False
+'This sub preforms the main duties required to complete the assignment. It stores all
+'Variables required for long term calculations, as well as iterators for the individual
+'sheets
+
+    'Variable Declarations
+    Dim startTime As Single
+    'Begins timing the execution of the macro
+    startTime = Timer
+    Dim i As Long
+    Dim negBalanceCount As Long
+    Dim lostBalanceCount As Long
+    Dim loadBalanceCount As Long
+    Dim successfulInserts As Long
+    Dim folUpInserts As Integer
+    Dim pinInserts As Integer
+    Dim premInserts As Integer
+    Dim probInserts As Integer
+    Dim noServiceInserts As Integer
+    Dim allowedStates(6) As String
+    Dim noService As Integer
+    Dim numRands As Integer
+    allowedStates(0) = "Alabama"
+    allowedStates(1) = "Arkansas"
+    allowedStates(2) = "Florida"
+    allowedStates(3) = "Georgia"
+    allowedStates(4) = "Louisiana"
+    allowedStates(5) = "Mississippi"
+    allowedStates(6) = "Tennessee"
+    successfulInserts = 0
+    folUpInserts = 0
+    pinInserts = 0
+    premInserts = 0
+    probInserts = 0
+    noService = 0
+      
+    'Loop that iterates across all the rows in "SUNSHINE"
+    For i = 2 To 50045
+    
+        'This control structure checks for missing client information, and loads them into the
+        '"Follow up" Sheet
+        If (Application.WorksheetFunction.CountA(Sheets("SUNSHINE").Rows(i)) <> 9) Then
+            Call insertData(i, folUpInserts + 2, "Follow Up")
+            folUpInserts = folUpInserts + 1
+            
+        'This Segment checks for Repeating Pin Numbers, and if it finds them uploads them into the "pin" sheet
+        ElseIf Sheets("SUNSHINE").Cells(i, 6).Value Mod 1111 = 0 And Not IsEmpty(Sheets("Sunshine").Cells(i, 6)) Then
+            Call insertData(i, pinInserts + 2, "PIN")
+            pinInserts = pinInserts + 1
+            
+        ' The following section of code finds clients whom live in disallowed states and sums their account value
+        ElseIf Not isInArray(allowedStates, Sheets("SUNSHINE").Cells(i, 4).Value) Then
+            Call insertData(i, noServiceInserts + 2, "Customers We Cannot Serve")
+            noServiceInserts = noServiceInserts + 1
+            lostBalanceCount = lostBalanceCount + Sheets("SUNSHINE").Cells(i, 3).Value
+        
+        
+        'All remaining rows are uploaded into Load Data
+        Else
+            Call insertData(i, successfulInserts + 2, "Load Data")
+            successfulInserts = successfulInserts + 1
+            loadBalanceCount = loadBalanceCount + Sheets("SUNSHINE").Cells(i, 3)
+        End If
+    
+        'The following section of code Determines if a Client is Premier, and places their information in the appropriate sheet
+        If Sheets("SUNSHINE").Cells(i, 3).Value > 25000 Or (Sheets("SUNSHINE").Cells(i, 3) > 18000 And Sheets("SUNSHINE").Cells(i, 8) = 2 And Sheets("SUNSHINE").Cells(i, 9) = 2) Then
+            Call insertData(i, premInserts + 2, "Premier Customers")
+            premInserts = premInserts + 1
+        
+        'The following section of code Determines if a Client is a problem, and places their information in the appropriate sjeet
+        ElseIf Sheets("SUNSHINE").Cells(i, 3).Value < 0 Then
+            Call insertData(i, probInserts + 2, "Problem Customers")
+            negBalanceCount = negBalanceCount + -1 * Sheets("SUNSHINE").Cells(i, 3).Value
+            probInserts = probInserts + 1
+        End If
+ 
+    Next i
+    
+    'Color the cells for high/Low roller customers
+    Dim avgBalance As Integer
+    avgBalance = loadBalanceCount / successfulInserts
+    For i = 2 To successfulInserts + 1
+        If Sheets("Load Data").Cells(i, 4) >= avgBalance + 5000 Then
+            Call colorize(i, True)
+        ElseIf Sheets("Load Data").Cells(i, 4) <= avgBalance - 7000 Then
+            Call colorize(i, False)
+        End If
+    Next i
+    
+    'Generate Random People to be added to the Random Contact List
+    Dim random As Long
+    Dim rndAcctNum As Long
+    For i = 1 To 300
+tryAgain:
+        random = Int(rnd * successfulInserts + 2)
+        rndAcctNum = Sheets("Load Data").Cells(random, 1)
+        If rndAcctNum <> Sheets("Random Sample").Range("A" & Rows.Count).End(xlUp).Value And random <= successfulInserts + 1 Then
+             Sheets("Random Sample").Cells(i + 1, 1).Value = Sheets("Load Data").Cells(random, 1).Value
+             Sheets("Random Sample").Cells(i + 1, 2).Value = Sheets("Load Data").Cells(random, 2).Value
+             Sheets("Random Sample").Cells(i + 1, 3).Value = Sheets("Load Data").Cells(random, 3).Value
+             Sheets("Random Sample").Cells(i + 1, 4).Value = Sheets("Load Data").Cells(random, 4).Value
+             Sheets("Random Sample").Cells(i + 1, 5).Value = Sheets("Load Data").Cells(random, 5).Value
+             Sheets("Random Sample").Cells(i + 1, 6).Value = Sheets("Load Data").Cells(random, 6).Value
+             Sheets("Random Sample").Cells(i + 1, 7).Value = Sheets("Load Data").Cells(random, 7).Value
+             Sheets("Random Sample").Cells(i + 1, 8).Value = Sheets("Load Data").Cells(random, 8).Value
+             Sheets("Random Sample").Cells(i + 1, 9).Value = Sheets("Load Data").Cells(random, 9).Value
+             Sheets("Random Sample").Cells(i + 1, 10).Value = Sheets("Load Data").Cells(random, 10).Value
+        Else: GoTo tryAgain
+        End If
+    Next i
+    '***************************************EDIT BELOW BASED ON CHANGES******************
+    
+    'Calculate Final Outputs and prepare message
+    Dim percentMissing As Single
+    percentMissing = 100 * (folUpInserts / (successfulInserts + folUpInserts))
+    Dim msg As String
+    Dim display As String
+    Dim title As String
+    title = "Team 21's Results"
+    msg = msg + "Number of accounts ready for immediate use: " & successfulInserts & vbNewLine
+    msg = msg + "The Percentage of accounts missing information is: " & Round(percentMissing, 2) & "%" & vbNewLine
+    msg = msg + "Value lost through disallowed accounts: " & lostBalanceCount & "$" & vbNewLine
+    msg = msg + "Amount that can be saved if problem clients Reimburse: " & negBalanceCount & "$" & vbNewLine
+   
+   'Stop the Timer
+    Dim totalTime As Long
+    totalTime = Round(Timer - startTime, 2)
+    msg = msg + "The time it takes to run: " & totalTime & " Seconds"
+    
+    'Display the message and relish the Success!
+    display = MsgBox(msg, vbOKOnly, title)
+    Application.ScreenUpdating = True
+End Sub
